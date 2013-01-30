@@ -42,22 +42,7 @@ module PageFactory
         end
 
         def load_subclasses_with_factory
-
-          ([RADIANT_ROOT] + Radiant::Extension.descendants.map(&:root)).each do |path|
-            Dir["#{path}/app/models/*_page.rb"].each do |page|
-              $1.camelize.constantize if page =~ %r{/([^/]+)\.rb}
-            end
-          end
-          if ActiveRecord::Base.connection.tables.include?('pages') && Page.column_names.include?('class_name') # Assume that we have bootstrapped
-            Page.connection.select_values("SELECT DISTINCT class_name FROM pages WHERE class_name <> '' AND class_name IS NOT NULL").each do |p|
-              begin
-                p.constantize
-              rescue NameError, LoadError
-                # eval(%Q{class #{p} < Page; acts_as_tree; def self.missing?; true end end}, TOPLEVEL_BINDING)
-              end
-            end
-          end
-          
+          load_subclasses_without_factory
           %w(app/models lib).each do |path|
             Dir["#{Rails.root}/#{path}/*_page.rb"].each do |page|
               $1.camelize.constantize if page =~ %r{/([^/]+)\.rb}
